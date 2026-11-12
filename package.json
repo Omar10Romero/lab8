@@ -1,0 +1,19 @@
+{
+  "name": "motoconnect-enterprise",
+  "version": "2.0.0",
+  "description": "MotoConnect Enterprise: E-commerce Full-Stack, 3D/AR, RBAC, Pagos QR y Contratos PDF",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/app.test.js"
+  },
+  "keywords": [
+    "MotoConnect",
+    "Ingenieria de Software",
+    "Full-Stack",
+    "WebGL",
+    "RBAC"
+  ],
+  "author": "Luis Fernando Alarcon Caceres & Omar Giovanny Romero Cruz",
+  "license": "MIT"
+}

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MotoConnect Enterprise | Plataforma Integral de Motocicletas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Librerías profesionales: jsPDF para facturas/contratos y Model-Viewer para 3D/AR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-[#0B0F19] text-[#F8FAFC] antialiased selection:bg-[#EF4444] selection:text-white">
+
+  <!-- CONTENEDOR DE NOTIFICACIONES PUSH EN TIEMPO REAL (SIMULACIÓN WEBSOCKETS) -->
+  <div id="toastContainer" class="fixed top-24 right-4 z-[60] flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- 1. HEADER / BARRA DE NAVEGACIÓN FIJA -->
+  <header class="fixed top-0 inset-x-0 z-50 glass-nav border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="#inicio" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#EF4444] to-[#F97316] flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:scale-105 transition">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-display font-extrabold text-xl tracking-tight text-white">MOTO<span class="text-[#F97316]">CONNECT</span></span>
+          <span class="block text-[10px] uppercase tracking-widest text-slate-400">Enterprise Edition</span>
+        </div>
+      </a>
+
+      <nav class="hidden xl:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="#inicio" class="hover:text-white transition">Inicio</a>
+        <a href="#problema-solucion" class="hover:text-white transition">Problema vs. Solución</a>
+        <a href="#catalogo" class="hover:text-white transition">Catálogo</a>
+        <a href="#modulos" class="hover:text-white transition">Módulos</a>
+        <a href="#flujo" class="hover:text-white transition">Flujo</a>
+        <a href="#tecnologias" class="hover:text-white transition">Arquitectura</a>
+        <a href="#equipo" class="hover:text-white transition">Equipo</a>
+      </nav>
+
+      <div class="flex items-center gap-2.5">
+        <!-- Botón Comparador -->
+        <button id="openCompareBtn" class="relative px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+          <span>Comparar</span>
+          <span id="compareCountBadge" class="px-1.5 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r from-[#EF4444] to-[#F97316] text-white">0</span>
+        </button>
+
+        <!-- Botón Carrito / Checkout -->
+        <button id="openCartBtn" class="relative px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+          <span>🛒</span>
+          <span id="cartCountBadge" class="px-1.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500 text-slate-950">0</span>
+        </button>
+
+        <!-- Botón Sesión / Panel de Rol -->
+        <button id="authActionBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#F97316] hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-red-500/25 transition">
+          Iniciar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. SECCIÓN HERO (PORTADA PRINCIPAL) -->
+  <section id="inicio" class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden carbon-bg">
+    <div class="hero-glow"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-[#F97316]">
+            <span class="w-2 h-2 rounded-full bg-[#EF4444] animate-ping"></span>
+            INGENIERÍA DE SOFTWARE • FULL-STACK & 3D AR
+          </div>
+
+          <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight">
+            La Plataforma Digital que <span class="text-gradient">Revoluciona</span> la Compra de Motocicletas
+          </h1>
+
+          <p class="text-base sm:text-lg text-[#94A3B8] max-w-2xl leading-relaxed">
+            MotoConnect centraliza la consulta técnica homologada, visualización 3D/AR, comparación lado a lado, pagos QR/tarjeta y contratos digitales con gestión multi-sucursal en tiempo real.
+          </p>
+
+          <div class="flex flex-wrap gap-3 pt-2">
+            <a href="#catalogo" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#F97316] text-white font-bold text-sm shadow-xl shadow-orange-600/25 hover:scale-[1.02] transition">
+              Explorar Catálogo
+            </a>
+            <button id="open3DShowcaseBtn" class="px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-orange-500/40 text-white font-semibold text-sm flex items-center gap-2 transition">
+              <span>🧊</span> Vista 3D / AR Interactiva
+            </button>
+            <button id="openTramitesModal" class="px-5 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold text-sm transition">
+              Guía de Trámites
+            </button>
+          </div>
+
+          <!-- Métricas clave -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/10">
+            <div>
+              <p class="font-display text-2xl font-extrabold text-white">+120</p>
+              <p class="text-xs text-slate-400">Modelos Homologados</p>
+            </div>
+            <div>
+              <p class="font-display text-2xl font-extrabold text-[#F97316]">6 Sedes</p>
+              <p class="text-xs text-slate-400">Stock Multi-Sucursal</p>
+            </div>
+            <div>
+              <p class="font-display text-2xl font-extrabold text-white">PDF / QR</p>
+              <p class="text-xs text-slate-400">Contratos Instantáneos</p>
+            </div>
+            <div>
+              <p class="font-display text-2xl font-extrabold text-emerald-400">4.9 ★</p>
+              <p class="text-xs text-slate-400">Satisfacción Pilotos</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta Destacada Hero -->
+        <div class="lg:col-span-5">
+          <div class="glass-card rounded-3xl p-5 border border-white/15 relative shadow-2xl">
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">● Stock Verificado</span>
+              <span class="text-xs text-slate-400 font-medium">Entrega inmediata + SOAT</span>
+            </div>
+            <div class="rounded-2xl overflow-hidden bg-[#0F172A] aspect-[16/10] relative">
+              <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=900&q=80" alt="Yamaha MT-07" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-transparent to-transparent"></div>
+              <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+                <div>
+                  <span class="text-[11px] uppercase tracking-wider text-[#F97316] font-bold">Destacada del Mes</span>
+                  <h3 class="font-display text-xl font-extrabold text-white">Yamaha MT-07 Crossplane CP2</h3>
+                </div>
+                <span class="font-display text-2xl font-black text-white">$8,450</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+              <div class="p-2.5 rounded-xl bg-white/5">
+                <p class="text-[11px] text-slate-400">Cilindrada</p>
+                <p class="font-bold text-sm">689 cc</p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white/5">
+                <p class="text-[11px] text-slate-400">Potencia</p>
+                <p class="font-bold text-sm">73.4 HP</p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white/5">
+                <p class="text-[11px] text-slate-400">Garantía</p>
+                <p class="font-bold text-sm">24 Meses</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buscador Visual Simulado -->
+      <div class="mt-14 glass-card rounded-2xl p-5 sm:p-6 border border-white/15 shadow-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span>
+          <h2 class="font-display font-bold text-sm uppercase tracking-wider text-slate-200">Buscador Inteligente de Motocicletas</h2>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Marca Oficial</label>
+            <select id="filterBrand" class="w-full rounded-xl bg-[#0F172A] border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#F97316]">
+              <option value="all">Todas las Marcas</option>
+              <option value="Yamaha">Yamaha</option>
+              <option value="Honda">Honda</option>
+              <option value="Kawasaki">Kawasaki</option>
+              <option value="BMW">BMW Motorrad</option>
+              <option value="KTM">KTM</option>
+              <option value="Ducati">Ducati</option>
+              <option value="Suzuki">Suzuki</option>
+              <option value="Royal Enfield">Royal Enfield</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Cilindrada (cc)</label>
+            <select id="filterCc" class="w-full rounded-xl bg-[#0F172A] border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#F97316]">
+              <option value="all">Todas las Cilindradas</option>
+              <option value="low">Media (350cc - 500cc)</option>
+              <option value="mid">Intermedia-Alta (600cc - 750cc)</option>
+              <option value="high">Alta Cilindrada (+800cc)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Rango de Presupuesto</label>
+            <select id="filterPrice" class="w-full rounded-xl bg-[#0F172A] border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#F97316]">
+              <option value="all">Cualquier Precio</option>
+              <option value="under7000">Hasta $7,000</option>
+              <option value="7000to11000">$7,000 - $11,000</option>
+              <option value="over11000">Más de $11,000</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button id="heroSearchBtn" class="w-full py-2.5 px-5 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#F97316] hover:opacity-95 font-bold text-sm text-white shadow-lg shadow-red-500/20 transition">
+              Buscar Motocicletas
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. SECCIÓN PROBLEMA VS. SOLUCIÓN -->
+  <section id="problema-solucion" class="py-20 bg-[#0F172A]/60 border-y border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-bold uppercase tracking-widest text-[#F97316]">Transformación Digital Automotriz</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-extrabold mt-2">Del Proceso Disperso a la Compra Inteligente</h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="rounded-3xl p-8 bg-[#18181B]/90 border border-red-500/20">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-bold mb-4">
+            ✕ PROCESO TRADICIONAL (EL PROBLEMA)
+          </div>
+          <h3 class="font-display text-2xl font-bold mb-4 text-white">Fragmentación y Falta de Transparencia</h3>
+          <ul class="space-y-4 text-sm text-[#94A3B8]">
+            <li class="flex items-start gap-3"><span class="text-red-400 font-bold mt-0.5">•</span><span><strong class="text-slate-200">Información dispersa:</strong> Fichas técnicas incompletas y difíciles de contrastar entre concesionarios físicos.</span></li>
+            <li class="flex items-start gap-3"><span class="text-red-400 font-bold mt-0.5">•</span><span><strong class="text-slate-200">Costos ocultos:</strong> Sobreprecios de última hora por matriculación, placas, impuestos y seguros obligatorios.</span></li>
+            <li class="flex items-start gap-3"><span class="text-red-400 font-bold mt-0.5">•</span><span><strong class="text-slate-200">Demoras burocráticas:</strong> Tiempos de espera de <strong>14 a 28 días</strong> para validar stock y completar trámites vehiculares.</span></li>
+            <li class="flex items-start gap-3"><span class="text-red-400 font-bold mt-0.5">•</span><span><strong class="text-slate-200">Posventa desconectada:</strong> Incertidumbre sobre disponibilidad real de repuestos OEM y accesorios compatibles.</span></li>
+          </ul>
+        </div>
+
+        <div class="rounded-3xl p-8 glass-card border border-orange-500/30 relative overflow-hidden">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold mb-4">
+            ✓ ECOSISTEMA MOTOCONNECT (LA SOLUCIÓN)
+          </div>
+          <h3 class="font-display text-2xl font-bold mb-4 text-white">Plataforma Centralizada de Extremo a Extremo</h3>
+          <ul class="space-y-4 text-sm text-slate-300">
+            <li class="flex items-start gap-3"><span class="text-[#F97316] font-bold mt-0.5">✔</span><span><strong class="text-white">Catálogo técnico homologado y 3D:</strong> Inspección interactiva y comparador dinámico lado a lado en segundos.</span></li>
+            <li class="flex items-start gap-3"><span class="text-[#F97316] font-bold mt-0.5">✔</span><span><strong class="text-white">Checkout con QR y Contratos PDF:</strong> Pagos digitales instantáneos con generación automática de factura y contrato legal.</span></li>
+            <li class="flex items-start gap-3"><span class="text-[#F97316] font-bold mt-0.5">✔</span><span><strong class="text-white">Control por Roles (RBAC):</strong> Paneles independientes para Clientes, Agentes de Sucursal y Administradores.</span></li>
+            <li class="flex items-start gap-3"><span class="text-[#F97316] font-bold mt-0.5">✔</span><span><strong class="text-white">Tracking en Tiempo Real:</strong> Notificaciones instantáneas de validación de SOAT, asignación de chasis y despacho.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. CATÁLOGO DEMOSTRATIVO INTERACTIVO -->
+  <section id="catalogo" class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-[#F97316]">Inventario Homologado</span>
+          <h2 class="font-display text-3xl sm:text-4xl font-extrabold mt-1">Catálogo de Motocicletas de Muestra</h2>
+          <p class="text-sm text-[#94A3B8] mt-2">Filtra por categoría, inspecciona la ficha técnica, simula cuotas, compara o reserva directamente en tu carrito.</p>
+        </div>
+        <button id="resetFiltersBtn" class="self-start md:self-auto px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition">
+          Restablecer Filtros
+        </button>
+      </div>
+
+      <!-- Pestañas de Categoría -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div id="categoryTabs" class="flex flex-wrap gap-2">
+          <button data-cat="all" class="cat-tab active px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-[#EF4444] to-[#F97316] text-white">Todas</button>
+          <button data-cat="Deportiva" class="cat-tab px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-slate-300 hover:bg-white/10">Deportivas</button>
+          <button data-cat="Naked" class="cat-tab px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-slate-300 hover:bg-white/10">Naked</button>
+          <button data-cat="Adventure" class="cat-tab px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-slate-300 hover:bg-white/10">Adventure</button>
+          <button data-cat="Clásica" class="cat-tab px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-slate-300 hover:bg-white/10">Clásica & Café Racer</button>
+        </div>
+
+        <input id="quickSearchInput" type="text" placeholder="Buscar modelo o marca..." class="w-full sm:w-64 rounded-xl bg-[#0F172A] border border-white/10 px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#F97316]" />
+      </div>
+
+      <!-- Grilla de Motocicletas -->
+      <div id="catalogGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- 5. MÓDULOS Y FUNCIONALIDADES DEL ECOSISTEMA -->
+  <section id="modulos" class="py-20 bg-[#0F172A]/60 border-y border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-bold uppercase tracking-widest text-[#F97316]">Arquitectura Funcional</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-extrabold mt-2">Módulos y Funcionalidades del Ecosistema</h2>
+        <p class="text-sm text-[#94A3B8] mt-2">Seis pilares integrados que cubren todo el ciclo comercial, logístico y posventa.</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#F97316]/50 transition">
+          <div class="w-11 h-11 rounded-xl bg-orange-500/15 text-[#F97316] flex items-center justify-center font-bold text-lg mb-4">⚖️</div>
+          <h3 class="font-display font-bold text-lg mb-2">1. Comparador Avanzado</h3>
+          <p class="text-sm text-[#94A3B8] leading-relaxed">Contrasta hasta 3 motocicletas lado a lado evaluando relación peso-potencia, torque, garantía y cuota mensual estimada.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#F97316]/50 transition">
+          <div class="w-11 h-11 rounded-xl bg-red-500/15 text-[#EF4444] flex items-center justify-center font-bold text-lg mb-4">⚙️</div>
+          <h3 class="font-display font-bold text-lg mb-2">2. Repuestos y Accesorios OEM</h3>
+          <p class="text-sm text-[#94A3B8] leading-relaxed">Añade kits de seguridad, cascos certificados y accesorios compatibles directamente durante el flujo de reserva.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#F97316]/50 transition">
+          <div class="w-11 h-11 rounded-xl bg-orange-500/15 text-[#F97316] flex items-center justify-center font-bold text-lg mb-4">📄</div>
+          <h3 class="font-display font-bold text-lg mb-2">3. Contratos PDF y Trámites</h3>
+          <p class="text-sm text-[#94A3B8] leading-relaxed">Generación instantánea de contrato de compra-venta y factura electrónica en PDF con activación digital de SOAT.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#F97316]/50 transition">
+          <div class="w-11 h-11 rounded-xl bg-red-500/15 text-[#EF4444] flex items-center justify-center font-bold text-lg mb-4">🏢</div>
+          <h3 class="font-display font-bold text-lg mb-2">4. Almacenes Multi-Sucursal</h3>
+          <p class="text-sm text-[#94A3B8] leading-relaxed">Sincronización de inventario físico entre 6 sedes regionales con gestión en vivo desde el panel de Agente/Admin.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#F97316]/50 transition">
+          <div class="w-11 h-11 rounded-xl bg-orange-500/15 text-[#F97316] flex items-center justify-center font-bold text-lg mb-4">💳</div>
+          <h3 class="font-display font-bold text-lg mb-2">5. Cobranzas QR & Tarjetas</h3>
+          <p class="text-sm text-[#94A3B8] leading-relaxed">Pasarela multifunción con código QR dinámico con expiración en vivo y procesamiento seguro de tarjetas.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border border-white/10 hover:border-[#F97316]/50 transition">
+          <div class="w-11 h-11 rounded-xl bg-red-500/15 text-[#EF4444] flex items-center justify-center font-bold text-lg mb-4">🚚</div>
+          <h3 class="font-display font-bold text-lg mb-2">6. Distribución y Tracking Live</h3>
+          <p class="text-sm text-[#94A3B8] leading-relaxed">Notificaciones push en tiempo real sobre validación de chasis, inspección pre-entrega y despacho a domicilio.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. FLUJO DE COMPRA Y STACK TECNOLÓGICO -->
+  <section id="flujo" class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <span class="text-xs font-bold uppercase tracking-widest text-[#F97316]">Experiencia de Usuario</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-extrabold mt-2">Flujo Transaccional de 6 Etapas</h2>
+        <p class="text-sm text-[#94A3B8] mt-2">Haz clic en cada etapa para simular el recorrido completo del comprador dentro de MotoConnect.</p>
+      </div>
+
+      <div id="flowSteps" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6"></div>
+      <div id="flowDetailBox" class="glass-card rounded-2xl p-6 border border-orange-500/30 mb-20"></div>
+
+      <!-- Stack Tecnológico -->
+      <div id="tecnologias" class="pt-6">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-bold uppercase tracking-widest text-[#F97316]">Ingeniería & Arquitectura</span>
+          <h3 class="font-display text-2xl sm:text-3xl font-extrabold mt-1">Stack Tecnológico Full-Stack & QA</h3>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="rounded-2xl p-5 bg-[#0F172A] border border-white/10">
+            <span class="text-xs font-bold text-sky-400 uppercase">Frontend & 3D AR</span>
+            <h4 class="font-display font-bold text-lg mt-1">HTML5 + Tailwind + WebGL</h4>
+            <p class="text-xs text-slate-400 mt-1">Renderizado 3D con <strong class="text-slate-200">Model-Viewer</strong> y generación PDF client-side con <strong class="text-slate-200">jsPDF</strong>.</p>
+          </div>
+          <div class="rounded-2xl p-5 bg-[#0F172A] border border-white/10">
+            <span class="text-xs font-bold text-indigo-400 uppercase">Seguridad & Roles</span>
+            <h4 class="font-display font-bold text-lg mt-1">RBAC + JWT Auth</h4>
+            <p class="text-xs text-slate-400 mt-1">Control de acceso granular para Clientes, Agentes de Sucursal y Administradores.</p>
+          </div>
+          <div class="rounded-2xl p-5 bg-[#0F172A] border border-white/10">
+            <span class="text-xs font-bold text-emerald-400 uppercase">Backend API</span>
+            <h4 class="font-display font-bold text-lg mt-1">Node.js + Express</h4>
+            <p class="text-xs text-slate-400 mt-1">Servidor RESTful (`server.js`) con endpoints de catálogo, stock multi-sucursal y órdenes.</p>
+          </div>
+          <div class="rounded-2xl p-5 bg-[#0F172A] border border-white/10">
+            <span class="text-xs font-bold text-green-400 uppercase">Calidad & Testing</span>
+            <h4 class="font-display font-bold text-lg mt-1">Node Test Runner / QA</h4>
+            <p class="text-xs text-slate-400 mt-1">Pruebas unitarias automatizadas para validar cálculos financieros, filtros e inventario.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. SECCIÓN DE EQUIPO Y CRÉDITOS ACADÉMICOS -->
+  <section id="equipo" class="py-20 bg-[#0F172A]/60 border-t border-white/5">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold uppercase tracking-widest text-[#F97316]">Ingeniería de Software</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-extrabold mt-2">Equipo de Desarrollo y Créditos</h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="glass-card rounded-3xl p-7 border border-white/10 flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#EF4444] to-[#F97316] flex items-center justify-center font-display font-black text-lg text-white mb-4">LF</div>
+            <h3 class="font-display text-xl font-extrabold text-white">Luis Fernando Alarcon Caceres</h3>
+            <p class="text-xs font-bold text-[#F97316] uppercase tracking-wider mt-1">Ciencias de la Ingeniería de Computación</p>
+            <p class="text-sm text-[#94A3B8] mt-4 leading-relaxed">
+              Liderazgo UI/UX, maquetación Frontend, renderizado 3D/AR, generación asistida en Antigravity, control de versiones en GitHub y despliegue continuo en Render.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-7 border border-white/10 flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EF4444] flex items-center justify-center font-display font-black text-lg text-white mb-4">OG</div>
+            <h3 class="font-display text-xl font-extrabold text-white">Omar Giovanny Romero Cruz</h3>
+            <p class="text-xs font-bold text-[#F97316] uppercase tracking-wider mt-1">Ingeniería de Sistemas</p>
+            <p class="text-sm text-[#94A3B8] mt-4 leading-relaxed">
+              Arquitectura Full-Stack (Node.js/Express), control de acceso por roles (RBAC), pasarela QR/PDF, inventario multi-sucursal y suite de pruebas automatizadas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. FOOTER (PIE DE PÁGINA) -->
+  <footer class="bg-[#070A12] border-t border-white/10 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-white/10">
+        <div>
+          <span class="font-display font-extrabold text-xl text-white">MOTO<span class="text-[#F97316]">CONNECT</span></span>
+          <p class="text-xs text-slate-400 mt-1 max-w-md">
+            E-commerce Integral Enterprise para la Venta de Motocicletas, Accesorios y Repuestos Homologados.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-5 text-xs text-slate-400">
+          <a href="#inicio" class="hover:text-white">Inicio</a>
+          <a href="#problema-solucion" class="hover:text-white">Problema vs. Solución</a>
+          <a href="#catalogo" class="hover:text-white">Catálogo</a>
+          <a href="#modulos" class="hover:text-white">Módulos</a>
+          <a href="#flujo" class="hover:text-white">Flujo</a>
+          <a href="#equipo" class="hover:text-white">Equipo</a>
+        </div>
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <p>Prototipo Enterprise desarrollado para el proyecto MotoConnect — Ingeniería de Software.</p>
+        <p>© 2026 MotoConnect Team. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- BARRA FLOTANTE DEL COMPARADOR -->
+  <div id="floatingCompareBar" class="hidden fixed bottom-4 inset-x-4 sm:inset-x-auto sm:right-6 sm:w-[440px] z-40 glass-card rounded-2xl p-4 border border-orange-500/40 shadow-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-[#F97316]">Comparador Activo (<span id="barCount">0</span>/3)</span>
+      <button id="clearCompareBtn" class="text-xs text-slate-400 hover:text-white">Limpiar</button>
+    </div>
+    <div id="floatingCompareList" class="flex flex-wrap gap-2 mb-3"></div>
+    <button id="launchCompareModalBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#F97316] text-white font-bold text-xs shadow-lg">
+      Comparar Lado a Lado
+    </button>
+  </div>
+
+  <!-- MODAL 1: FICHA TÉCNICA Y SIMULADOR DE CUOTAS -->
+  <div id="specModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-white/15 rounded-3xl max-w-2xl w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+      <button id="closeSpecModal" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold">✕</button>
+      <div id="specModalContent"></div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: COMPARADOR LADO A LADO -->
+  <div id="compareModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-white/15 rounded-3xl max-w-4xl w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+      <button id="closeCompareModal" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold">✕</button>
+      <h3 class="font-display text-2xl font-extrabold mb-1">Comparador Técnico Homologado</h3>
+      <p class="text-xs text-slate-400 mb-6">Contrasta especificaciones clave entre los modelos seleccionados.</p>
+      <div id="compareModalContent" class="overflow-x-auto"></div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: GUÍA DE TRÁMITES VEHICULARES -->
+  <div id="tramitesModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-white/15 rounded-3xl max-w-xl w-full p-6 sm:p-8 relative">
+      <button id="closeTramitesModal" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold">✕</button>
+      <span class="text-xs font-bold uppercase text-[#F97316]">Gestión Digital Integrada</span>
+      <h3 class="font-display text-2xl font-extrabold mt-1 mb-4">Guía de Trámites Vehiculares</h3>
+      <div class="space-y-3 text-sm text-slate-300">
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
+          <strong class="text-white block">1. Emisión de Placas y Tarjeta de Propiedad</strong>
+          <span class="text-xs text-slate-400">Gestión directa con tránsito sin filas presenciales (48 a 72 horas hábiles).</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
+          <strong class="text-white block">2. Seguro Obligatorio (SOAT) Activado</strong>
+          <span class="text-xs text-slate-400">Cobertura digital vinculada al número de chasis desde el momento del despacho.</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
+          <strong class="text-white block">3. Certificado de Homologación Técnica</strong>
+          <span class="text-xs text-slate-400">Garantía oficial de fábrica y registro de mantenimiento preventivo en 6 sedes.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: VISUALIZADOR 3D Y REALIDAD AUMENTADA (AR) -->
+  <div id="modal3D" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-orange-500/30 rounded-3xl max-w-3xl w-full p-6 sm:p-8 relative">
+      <button id="closeModal3D" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold">✕</button>
+      <span class="text-xs font-bold uppercase text-[#F97316]">Inspección Interactiva WebGL & AR</span>
+      <h3 class="font-display text-2xl font-extrabold mt-1 mb-2">Visualizador 360° de Ingeniería Mecánica</h3>
+      <p class="text-xs text-slate-400 mb-4">Arrastra con el mouse o dedo para rotar el modelo en 3D y acercar con zoom. En dispositivos móviles compatibles, presiona el botón AR para proyectarlo a escala real.</p>
+      <div class="rounded-2xl overflow-hidden bg-[#070A12] border border-white/10 h-80 sm:h-96 relative flex items-center justify-center">
+        <model-viewer
+          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+          poster="https://modelviewer.dev/shared-assets/models/Astronaut.webp"
+          ios-src=""
+          alt="Modelo 3D Interactivo MotoConnect"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          style="width: 100%; height: 100%; background-color: #070A12;">
+          <div slot="progress-bar" class="absolute inset-0 flex items-center justify-center bg-[#070A12]/80 text-xs text-[#F97316] font-bold">
+            Cargando modelo WebGL 3D...
+          </div>
+        </model-viewer>
+        <div class="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-black/70 border border-white/10 text-[11px] text-slate-300 pointer-events-none">
+          Motor WebGL Activo • Rotación 360° y Zoom Habilitados
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: SISTEMA DE AUTENTICACIÓN Y DASHBOARD POR ROLES (RBAC) -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-white/15 rounded-3xl max-w-3xl w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+      <button id="closeAuthModal" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold">✕</button>
+      <div id="authModalBody"></div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: CARRITO, CHECKOUT QR/TARJETA Y GENERADOR DE CONTRATO PDF -->
+  <div id="cartModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-white/15 rounded-3xl max-w-2xl w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+      <button id="closeCartModal" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold">✕</button>
+      <div id="cartModalBody"></div>
+    </div>
+  </div>
+
+  <!-- BOTÓN FLOTANTE DE WHATSAPP -->
+  <a href="https://wa.me/59174418015?text=Hola%20MotoConnect,%20estoy%20interesado%20en%20una%20motocicleta%20homologada." 
+     target="_blank" 
+     class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-2xl transition hover:scale-110"
+     title="Chatear por WhatsApp con un Agente">
+    <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+    </svg>
+  </a>
+
+  <script src="app.js"></script>
+</body>
+</html>
